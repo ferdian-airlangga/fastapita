@@ -58,7 +58,7 @@ async def resume_scoring(positionId: str):
     }
 
     for i in payload['scores'] :
-    i['id']=i.pop('_id')
+        i['id']=i.pop('_id')
 
     header = {'Authorization': token}
     response=requests.put(backend_endpoint+"/api/candidate/score-candidate",json=payload,headers=header)
