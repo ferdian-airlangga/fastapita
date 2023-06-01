@@ -6,6 +6,7 @@ import requests
 import PyPDF2
 import io
 from fastapi.middleware.cors import CORSMiddleware
+import json
 
 
 app = FastAPI()
@@ -22,7 +23,7 @@ app.add_middleware(
 @app.post("/resume_scoring")
 async def resume_scoring(positionId: str):    
     
-    backend_endpoint = "https://5815-182-253-194-86.ngrok-free.app"
+    backend_endpoint = "https://d7af-182-253-158-19.ngrok-free.app"
 
     payload = {
         "email" : "warren@gmail.com",
@@ -54,13 +55,13 @@ async def resume_scoring(positionId: str):
     df = df[['_id', 'cvFile']]
     df = featureExtraction.extract_skills_df (df)
     result = featureExtraction.resume_scoring(df,jobdesc)
-
+    result = json.loads(result)
     payload = {
         "scores" : result
     }
 
     for i in payload['scores'] :
-        i['id']=i.pop('_id')
+        i['id'] = i.pop('_id')
 
     header = {'Authorization': token}
     response=requests.put(backend_endpoint+"/api/candidate/score-candidate",json=payload,headers=header)
