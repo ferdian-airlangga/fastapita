@@ -59,14 +59,14 @@ async def resume_scoring(positionId: str):
     payload = {
         "scores" : result
     }
-
     for i in payload['scores'] :
         i['id'] = i.pop('_id')
+    payload = json.dumps(payload)
 
     header = {'Authorization': token}
     response=requests.put(backend_endpoint+"/api/candidate/score-candidate",json=payload,headers=header)
 
-    return response
+    return {'response' : response}
     
 @app.post("/jobdesc_reader")
 async def jobdesc_reader(file: UploadFile = File(ext=[".docx",".pdf"])):
