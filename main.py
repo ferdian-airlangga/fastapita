@@ -5,8 +5,24 @@ import pandas as pd
 import requests
 import PyPDF2
 import io
+from fastapi.middleware.cors import CORSMiddleware
+
 
 app = FastAPI()
+
+# Configure CORS
+origins = [
+    "http://localhost:3000",  # Add the origins that are allowed to access your API
+    # Add more origins if needed
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.post("/resume_scoring")
 async def resume_scoring(positionId: str):    
