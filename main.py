@@ -29,6 +29,7 @@ async def resume_scoring(positionId: str):
         "password" : "000000"
     }
 
+
     response=requests.post(backend_endpoint+"/api/auth/login",json=payload)
     json_data = response.json()
     token=json_data['token']
@@ -36,7 +37,8 @@ async def resume_scoring(positionId: str):
     payload = {
         "id" : positionId
     }
-
+    
+    header = {'Authorization': token}
     response=requests.get(backend_endpoint+"/api/position/get-one-position",json=payload,headers=header)
     json_data = response.json()
     jobdesc = json_data["description"]+" "+json_data["qualification"]
