@@ -10,15 +10,10 @@ from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 
-# Configure CORS
-origins = [
-    "http://localhost:3000",  # Add the origins that are allowed to access your API
-    # Add more origins if needed
-]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -27,7 +22,7 @@ app.add_middleware(
 @app.post("/resume_scoring")
 async def resume_scoring(positionId: str):    
     
-    backend_endpoint = "https://e352-182-253-158-19.ngrok-free.app"
+    backend_endpoint = "https://5815-182-253-194-86.ngrok-free.app"
 
     payload = {
         "email" : "warren@gmail.com",
@@ -42,7 +37,6 @@ async def resume_scoring(positionId: str):
         "id" : positionId
     }
 
-    header = {'Authorization': token}
     response=requests.get(backend_endpoint+"/api/position/get-one-position",json=payload,headers=header)
     json_data = response.json()
     jobdesc = json_data["description"]+" "+json_data["qualification"]
@@ -51,7 +45,6 @@ async def resume_scoring(positionId: str):
         "positionId" : positionId
     }
 
-    header = {'Authorization': token}
     response=requests.get(backend_endpoint+"/api/candidate/get-candidate",json=payload,headers=header)
     json_data = response.json()
     
@@ -63,6 +56,9 @@ async def resume_scoring(positionId: str):
     payload = {
         "scores" : result
     }
+
+    for i in payload['scores'] :
+    i['id']=i.pop('_id')
 
     header = {'Authorization': token}
     response=requests.put(backend_endpoint+"/api/candidate/score-candidate",json=payload,headers=header)
