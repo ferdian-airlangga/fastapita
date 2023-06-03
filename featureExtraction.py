@@ -203,7 +203,8 @@ def resume_scoring (dataset,jobdes) :
     dataset.rename(columns={"cluster": "score", "score": "cluster"},inplace=True)
     dataset = dataset[dataset['_id'] != 'jobdes']
     dataset = dataset.drop(columns=['skills','cluster'])
-    return dataset.to_json(orient='records')
+    dataset.rename(columns={'_id':'id'}, inplace=True)
+    return dataset
 
 #LINK TO DOC
 def get_pdf_file_and_title(url):

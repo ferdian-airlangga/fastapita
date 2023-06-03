@@ -23,7 +23,7 @@ app.add_middleware(
 @app.post("/resume_scoring")
 async def resume_scoring(positionId: str):    
     
-    backend_endpoint = "https://d7af-182-253-158-19.ngrok-free.app"
+    backend_endpoint = "https://9f3f-182-253-158-19.ngrok-free.app"
 
     payload = {
         "email" : "warren@gmail.com",
@@ -54,20 +54,14 @@ async def resume_scoring(positionId: str):
     df = pd.DataFrame(json_data)
     df = df[['_id', 'cvFile']]
     df = featureExtraction.extract_skills_df (df)
-    result = featureExtraction.resume_scoring(df,jobdesc)
-    result = json.loads(result)
-    payload = {
-        "scores" : result
-    }
-    for i in payload['scores'] :
-        i['id'] = i.pop('_id')
-    payload = json.dumps(payload)
+    df = featureExtraction.resume_scoring(df,jobdesc)
+    df = df.to_json(orient='records')
+    df = json.loads(df)    
+    payload = {"scores" : df}
 
-    header = {'Authorization': token}
     response=requests.put(backend_endpoint+"/api/candidate/score-candidate",json=payload,headers=header)
+    return {'message' : 'success_scoring'}
 
-    return {'response' : response}
-    
 @app.post("/jobdesc_reader")
 async def jobdesc_reader(file: UploadFile = File(ext=[".docx",".pdf"])):
     contents = await file.read()
