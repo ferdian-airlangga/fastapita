@@ -23,7 +23,7 @@ app.add_middleware(
 @app.post("/resume_scoring")
 async def resume_scoring(positionId: str):    
     
-    backend_endpoint = "https://9f3f-182-253-158-19.ngrok-free.app"
+    backend_endpoint = "https://3605-182-253-194-86.ngrok-free.app"
 
     payload = {
         "email" : "warren@gmail.com",
@@ -60,7 +60,7 @@ async def resume_scoring(positionId: str):
     payload = {"scores" : df}
 
     response=requests.put(backend_endpoint+"/api/candidate/score-candidate",json=payload,headers=header)
-    return {'message' : 'success_scoring'}
+    return payload
 
 @app.post("/jobdesc_reader")
 async def jobdesc_reader(file: UploadFile = File(ext=[".docx",".pdf"])):
