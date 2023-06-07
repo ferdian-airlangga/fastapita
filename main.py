@@ -11,6 +11,8 @@ import json
 
 app = FastAPI()
 
+backend_endpoint = "https://51e5-182-253-158-19.ngrok-free.app"
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -23,7 +25,6 @@ app.add_middleware(
 @app.post("/resume_scoring")
 async def resume_scoring(positionId: str):    
     
-    backend_endpoint = "https://3605-182-253-194-86.ngrok-free.app"
 
     payload = {
         "email" : "warren@gmail.com",
@@ -40,18 +41,19 @@ async def resume_scoring(positionId: str):
     }
     
     header = {'Authorization': token}
-    response=requests.get(backend_endpoint+"/api/position/get-one-position",json=payload,headers=header)
+    response=requests.get(backend_endpoint+"/api/position/get-one-position",params=payload,headers=header)
     json_data = response.json()
     jobdesc = json_data["description"]+" "+json_data["qualification"]
-
+    
     payload = {
         "positionId" : positionId
     }
-
-    response=requests.get(backend_endpoint+"/api/candidate/get-candidate",json=payload,headers=header)
+    
+    response=requests.get(backend_endpoint+"/api/candidate/get-candidate",params=payload,headers=header)
     json_data = response.json()
     
     df = pd.DataFrame(json_data)
+
     df = df[['_id', 'cvFile']]
     df = featureExtraction.extract_skills_df (df)
     df = featureExtraction.resume_scoring(df,jobdesc)

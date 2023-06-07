@@ -237,7 +237,12 @@ def jobdesc_extractor(file) :
             txt = txt.decode('utf8')
             txt = GoogleTranslator(source='auto', target='en').translate(txt)
             text=text+txt
-        return text
+        text = text.split("KUALIFIKASI")
+        kualifikasi = text[1]
+        job_description = text [0]
+        job_description = job_description.split("DESKRIPSI PEKERJAAN")
+        job_description = job_description [1]
+        return [job_description,kualifikasi]
     elif file.endswith('.docx') :
         temp_dir = tempfile.mkdtemp()
         output_file = os.path.join(temp_dir, 'output.pdf')
