@@ -11,7 +11,7 @@ import json
 
 app = FastAPI()
 
-backend_endpoint = "https://51e5-182-253-158-19.ngrok-free.app"
+backend_endpoint = "https://44b9-182-253-159-79.ngrok-free.app"
 
 
 app.add_middleware(
@@ -23,37 +23,28 @@ app.add_middleware(
 )
 
 @app.post("/resume_scoring")
-async def resume_scoring(positionId: str):    
+async def resume_scoring(positionId: str, token_value : str, companyId : str):    
     
-
-    payload = {
-        "email" : "warren@gmail.com",
-        "password" : "000000"
-    }
-
-
-    response=requests.post(backend_endpoint+"/api/auth/login",json=payload)
-    json_data = response.json()
-    token=json_data['token']
+    print("start scoring")
 
     payload = {
         "id" : positionId
     }
     
-    header = {'Authorization': token}
+    header = {'Authorization': token_value}
     response=requests.get(backend_endpoint+"/api/position/get-one-position",params=payload,headers=header)
     json_data = response.json()
     jobdesc = json_data["description"]+" "+json_data["qualification"]
     
     payload = {
-        "positionId" : positionId
+        "companyId" : companyId
     }
     
     response=requests.get(backend_endpoint+"/api/candidate/get-candidate",params=payload,headers=header)
     json_data = response.json()
     
     df = pd.DataFrame(json_data)
-
+    df = df.loc[df['position'] == positionId]
     df = df[['_id', 'cvFile']]
     df = featureExtraction.extract_skills_df (df)
     df = featureExtraction.resume_scoring(df,jobdesc)
@@ -62,6 +53,7 @@ async def resume_scoring(positionId: str):
     payload = {"scores" : df}
 
     response=requests.put(backend_endpoint+"/api/candidate/score-candidate",json=payload,headers=header)
+    print(payload)
     return payload
 
 @app.post("/jobdesc_reader")

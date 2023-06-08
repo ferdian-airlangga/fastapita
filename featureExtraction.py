@@ -204,9 +204,6 @@ def resume_scoring (dataset,jobdes) :
     dataset = dataset[dataset['_id'] != 'jobdes']
     dataset = dataset.drop(columns=['skills','cluster'])
     dataset.rename(columns={'_id':'id'}, inplace=True)
-    dataset['score'] = (dataset['score']-dataset['score'].min())/(dataset['score'].max()-dataset['score'].min())
-    dataset['score'] = dataset['score']*100
-    dataset['score'] = round(dataset['score'], 2)
     return dataset
 
 #LINK TO DOC
