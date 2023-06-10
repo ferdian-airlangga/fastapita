@@ -11,7 +11,7 @@ import json
 
 app = FastAPI()
 
-backend_endpoint = "https://44b9-182-253-159-79.ngrok-free.app"
+backend_endpoint = "https://9441-182-253-194-76.ngrok-free.app"
 
 
 app.add_middleware(
@@ -36,11 +36,7 @@ async def resume_scoring(positionId: str, token_value : str, companyId : str):
     json_data = response.json()
     jobdesc = json_data["description"]+" "+json_data["qualification"]
     
-    payload = {
-        "companyId" : companyId
-    }
-    
-    response=requests.get(backend_endpoint+"/api/candidate/get-candidate",params=payload,headers=header)
+    response=requests.get(backend_endpoint+"/api/candidate/get-all-candidate",headers=header)
     json_data = response.json()
     
     df = pd.DataFrame(json_data)
@@ -49,7 +45,7 @@ async def resume_scoring(positionId: str, token_value : str, companyId : str):
     df = featureExtraction.extract_skills_df (df)
     df = featureExtraction.resume_scoring(df,jobdesc)
     df = df.to_json(orient='records')
-    df = json.loads(df)    
+    df = json.loads(df)
     payload = {"scores" : df}
 
     response=requests.put(backend_endpoint+"/api/candidate/score-candidate",json=payload,headers=header)
