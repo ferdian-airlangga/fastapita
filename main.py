@@ -11,7 +11,7 @@ import json
 
 app = FastAPI()
 
-backend_endpoint = "https://ed4c-182-253-194-76.ngrok-free.app"
+backend_endpoint = "http://ec2-44-202-51-145.compute-1.amazonaws.com:5000/"
 
 
 app.add_middleware(
