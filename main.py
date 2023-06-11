@@ -11,7 +11,7 @@ import json
 
 app = FastAPI()
 
-backend_endpoint = "https://9441-182-253-194-76.ngrok-free.app"
+backend_endpoint = "https://4ea4-182-253-159-79.ngrok-free.app"
 
 
 app.add_middleware(
@@ -23,7 +23,7 @@ app.add_middleware(
 )
 
 @app.post("/resume_scoring")
-async def resume_scoring(positionId: str, token_value : str, companyId : str):    
+async def resume_scoring(positionId: str, token_value : str):    
     
     print("start scoring")
 
@@ -42,14 +42,17 @@ async def resume_scoring(positionId: str, token_value : str, companyId : str):
     df = pd.DataFrame(json_data)
     df = df.loc[df['position'] == positionId]
     df = df[['_id', 'cvFile']]
-    df = featureExtraction.extract_skills_df (df)
+    df_extract_skills = featureExtraction.extract_skills_df (df)
+    df = df_extract_skills[0]
+    list_of_skills = df_extract_skills[1]
     df = featureExtraction.resume_scoring(df,jobdesc)
+    df = pd.concat([df,list_of_skills], axis=1)
     df = df.to_json(orient='records')
     df = json.loads(df)
     payload = {"scores" : df}
-
+    for i in payload['scores'] :
+        i['skills'] = i.pop('cvFile')
     response=requests.put(backend_endpoint+"/api/candidate/score-candidate",json=payload,headers=header)
-    print(payload)
     return payload
 
 @app.post("/jobdesc_reader")

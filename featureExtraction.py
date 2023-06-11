@@ -153,11 +153,12 @@ def extractor_skills_from_resume (file) :
 def extract_skills_df (df) :
     df['cvFile'] = df['cvFile'].apply(lambda x: get_pdf_file_and_title(x))
     df['cvFile'] = df['cvFile'].apply(lambda x: extractor_skills_from_resume(x))
-    df['list_of_skills'] = df['cvFile']
+    list_of_skills = df['cvFile']
     df['cvFile'] = df['cvFile'].apply(lambda x: ' '.join([word for word in x]))
+
     df.rename(columns={"cvFile": "skills"},inplace=True)
 
-    return df
+    return [df,list_of_skills]
 
 #SIMILARITY CALCULATOR
 def calculate_similarity(sentence1, sentence2):
