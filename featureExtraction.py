@@ -17,6 +17,8 @@ import requests
 from io import BytesIO
 import PyPDF2
 from docx import Document
+import json
+from pdf2image import convert_from_bytes
 
 
 
@@ -91,8 +93,11 @@ def extractor_skills_resume_text (text) :
 
 ###############################MAIN FUNCTION####################################
 
-#DOC TO TEXT
-def extract_text_from_doc(file):
+#LINK TO TEXT
+def extract_text_from_doc(url):
+        response = requests.get(url)
+        file = response.content
+        file = BytesIO(response.content)
         text=""
         reader = PdfReader(file)
         page_number=len(reader.pages)
@@ -105,15 +110,15 @@ def extract_text_from_doc(file):
         text=text.lower()
         return text
 
-#DOC TO TXT (OCR)
-def extract_text_from_doc_ocr(file) :
-        filePath = file
-        doc = convert_from_path(filePath)
-        path, fileName = os.path.split(filePath)
-        fileBaseName, fileExtension = os.path.splitext(fileName)
-        text=""
-        for page_number, page_data in enumerate(doc):
-            txt = pytesseract.image_to_string(page_data).encode("utf-8")
+#LINK TO TXT (OCR)
+def extract_text_from_doc_ocr(url) : 
+        response = requests.get(url)
+        pdf_bytes = response.content
+        images = convert_from_bytes(pdf_bytes)
+        text = ''
+        for i, image in enumerate(images):
+            image = image.convert("L")
+            txt = pytesseract.image_to_string(image).encode("utf-8")
             txt = txt.decode('utf8')
             txt = GoogleTranslator(source='auto', target='en').translate(txt)
             text=text+txt
@@ -124,26 +129,26 @@ def extract_text_from_doc_ocr(file) :
 
 
 #EXTRACTOR SKILLS FROM RESUME FILE OCR AND PyPDF2
-def extractor_skills_from_resume_balanced (file) :
-    text=extract_text_from_doc(file)
+def extractor_skills_from_resume_balanced (url) :
+    text=extract_text_from_doc(url)
     tokenize_words=tokenize_1_words(text)+tokenize_2_words(text)+tokenize_3_words(text)
     skills = skills_extraction(tokenize_words)
     if(len(skills)==0):
-        text=extract_text_from_doc_ocr(file)
+        text=extract_text_from_doc_ocr(url)
         tokenize_words=tokenize_1_words(text)+tokenize_2_words(text)+tokenize_3_words(text)
         skills = skills_extraction(tokenize_words)        
     return skills
 
 #EXTRACTOR SKILLS FROM RESUME FILE OCR ONLY
-def extractor_skills_from_resume_ocr (file) :
-    text=extract_text_from_doc_ocr(file)
+def extractor_skills_from_resume_ocr (url) :
+    text=extract_text_from_doc_ocr(url)
     tokenize_words=tokenize_1_words(text)+tokenize_2_words(text)+tokenize_3_words(text)
     skills = skills_extraction(tokenize_words)
     return skills
 
 #EXTRACTOR SKILLS FROM RESUME FILE PyPDF2 ONLY
-def extractor_skills_from_resume (file) :
-    text=extract_text_from_doc(file)
+def extractor_skills_from_resume (url) :
+    text=extract_text_from_doc(url)
     tokenize_words=tokenize_1_words(text)+tokenize_2_words(text)+tokenize_3_words(text)
     skills = skills_extraction(tokenize_words)
     return skills
@@ -151,14 +156,13 @@ def extractor_skills_from_resume (file) :
 ###############################ADDITIONAL FUNCTION####################################
 #EXTRACT SKILLS TO DATAFRAME 
 def extract_skills_df (df) :
-    df['cvFile'] = df['cvFile'].apply(lambda x: get_pdf_file_and_title(x))
-    df['cvFile'] = df['cvFile'].apply(lambda x: extractor_skills_from_resume(x))
-    list_of_skills = df['cvFile']
+    df['cvFile'] = df['cvFile'].apply(lambda x: extractor_skills_from_resume_balanced(x))
+    df['list_of_skills'] = df['cvFile']   
     df['cvFile'] = df['cvFile'].apply(lambda x: ' '.join([word for word in x]))
 
     df.rename(columns={"cvFile": "skills"},inplace=True)
 
-    return [df,list_of_skills]
+    return df
 
 #SIMILARITY CALCULATOR
 def calculate_similarity(sentence1, sentence2):
@@ -177,7 +181,7 @@ def resume_scoring (dataset,jobdes) :
     jobdes = jobdes.lower()
     jobdes = extractor_skills_resume_text(jobdes)
     jobdes = " ".join([word for word in jobdes])
-    dataset.loc[len(dataset)] = pd.Series({'_id': 'jobdes', 'skills': jobdes})
+    dataset.loc[len(dataset)] = pd.Series({'list_of_skills':'','_id': 'jobdes', 'skills': jobdes})
 
     #Vectorization
     v = TfidfVectorizer()
@@ -193,7 +197,7 @@ def resume_scoring (dataset,jobdes) :
     dataset['cluster'] = cluster_labels
     dataset['cluster'] = dataset['cluster']+1
     jobdes_cluster = dataset.loc[dataset['_id'] == 'jobdes']
-    jobdes_cluster = jobdes_cluster.iloc[-1,2] 
+    jobdes_cluster = jobdes_cluster.iloc[0,3]
 
     #Loop Dataframe
     dataset['score']=dataset['cluster']
@@ -205,23 +209,9 @@ def resume_scoring (dataset,jobdes) :
     dataset.rename(columns={"cluster": "score", "score": "cluster"},inplace=True)
     dataset = dataset[dataset['_id'] != 'jobdes']
     dataset = dataset.drop(columns=['skills','cluster'])
-    dataset.rename(columns={'_id':'id'}, inplace=True)
+    dataset.rename(columns={'_id':'id','list_of_skills':'skills'}, inplace=True)
     return dataset
 
-#LINK TO DOC
-def get_pdf_file_and_title(url):
-    response = requests.get(url, stream=True)
-    pdf_data = BytesIO(response.content)
-    content_disposition = response.headers.get('content-disposition')
-    
-    if content_disposition:
-        filename = content_disposition.split('filename=')[1]
-        filename = filename.strip('"\'')
-
-    else:
-        filename = os.path.basename(url)
-    
-    return pdf_data
 
 #JOBDESC EXTRACTOR
 def jobdesc_extractor(file) :
