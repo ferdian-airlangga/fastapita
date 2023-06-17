@@ -7,11 +7,12 @@ import PyPDF2
 import io
 from fastapi.middleware.cors import CORSMiddleware
 import json
+from mailer import kirim_email
 
 
 app = FastAPI()
 
-backend_endpoint = "http://ec2-44-202-51-145.compute-1.amazonaws.com:5000/"
+backend_endpoint = "http://ec2-44-202-51-145.compute-1.amazonaws.com:5000"
 
 
 app.add_middleware(
@@ -63,6 +64,15 @@ async def jobdesc_reader(file: UploadFile = File(ext=[".docx",".pdf"])):
             "qualification" : jobdes[1]
     }
 
+@app.post("/mailer")
+async def mailer(email_recipient : str,nama_kandidat : str,posisi_dilamar : str):    
+    try:
+      kirim_email(email_recipient,nama_kandidat,posisi_dilamar)
+      return {'message' : 'Email terkirim'}
+    except Exception as e:
+      print(e)
+      return {'message' : 'SMTP server connection error'}
+    
 
 if __name__ == "__main__":
     uvicorn.run('main:app',reload=True)
