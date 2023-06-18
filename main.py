@@ -39,8 +39,7 @@ async def resume_scoring(positionId: str, token_value : str):
     
     response=requests.get(backend_endpoint+"/api/candidate/get-all-candidate",headers=header)
     json_data = response.json()
-    
-    df = pd.DataFrame(json_data)
+    df = pd.DataFrame(json_data['candidates'])
     df = df.loc[df['position'] == positionId]
     df = df[['_id', 'cvFile']]
     df = featureExtraction.extract_skills_df (df)
