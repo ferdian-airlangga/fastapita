@@ -157,35 +157,36 @@ def extractor_skills_from_resume (url) :
 #EXTRACT SKILLS TO DATAFRAME 
 def extract_skills_df (df) :
     df['cvFile'] = df['cvFile'].apply(lambda x: extractor_skills_from_resume_balanced(x))
-    df['list_of_skills'] = df['cvFile']   
-    df['cvFile'] = df['cvFile'].apply(lambda x: ' '.join([word for word in x]))
+#    df['cvFile'] = df['cvFile'].apply(lambda x: ' '.join([word for word in x]))
 
     df.rename(columns={"cvFile": "skills"},inplace=True)
 
     return df
 
 #SIMILARITY CALCULATOR
-def calculate_similarity(sentence1, sentence2):
-    # Tokenisasi kalimat menjadi kata-kata
-    tokens = [sentence1, sentence2]
-    tfidf_vectorizer = TfidfVectorizer(tokenizer=nltk.word_tokenize)
-    tfidf_matrix = tfidf_vectorizer.fit_transform(tokens)
-    
-    # Menghitung similarity menggunakan cosine similarity
-    similarity = cosine_similarity(tfidf_matrix[0], tfidf_matrix[1])
-    return (round(similarity[0][0]*100, 2))
-
+def hitung_skor(list_kata1, list_kata2):
+    skor = 0
+    print(list_kata1)
+    print(list_kata2)
+    for kata1 in list_kata1:
+        for kata2 in list_kata2:
+            if kata1 == kata2:
+                skor += 1
+    skor = skor/len(list_kata1)
+    skor = skor * 100
+    print(skor)
+    return (skor)
 #RESUME SCORING
 def resume_scoring (dataset,jobdes) :
     jobdes = GoogleTranslator(source='auto', target='en').translate(jobdes)
     jobdes = jobdes.lower()
     jobdes = extractor_skills_resume_text(jobdes)
-    jobdes = " ".join([word for word in jobdes])
-    dataset.loc[len(dataset)] = pd.Series({'list_of_skills':'','_id': 'jobdes', 'skills': jobdes})
-
+    dataset.loc[len(dataset)] = pd.Series({'_id': 'jobdes', 'skills': jobdes})
+    dataset['skills_concated'] = dataset['skills'].apply(lambda x: ' '.join([word for word in x]))
+    print(dataset)
     #Vectorization
     v = TfidfVectorizer()
-    dataset_vectorized = v.fit_transform(dataset['skills'])
+    dataset_vectorized = v.fit_transform(dataset['skills_concated'])
     dataset_vectorized=pd.DataFrame.sparse.from_spmatrix(dataset_vectorized)
 
     #Modelling
@@ -197,19 +198,21 @@ def resume_scoring (dataset,jobdes) :
     dataset['cluster'] = cluster_labels
     dataset['cluster'] = dataset['cluster']+1
     jobdes_cluster = dataset.loc[dataset['_id'] == 'jobdes']
+    print(jobdes_cluster)
     jobdes_cluster = jobdes_cluster.iloc[0,3]
 
     #Loop Dataframe
     dataset['score']=dataset['cluster']
     for index, row in dataset.iterrows():
         if(dataset.at[index, 'cluster'] == jobdes_cluster):
-            dataset.at[index, 'cluster'] = calculate_similarity(jobdes,dataset.at[index, 'skills'])
+            dataset.at[index, 'cluster'] = hitung_skor(jobdes,dataset.at[index, 'skills'])
         else :
             dataset.at[index, 'cluster'] = 0
+    print(dataset)
     dataset.rename(columns={"cluster": "score", "score": "cluster"},inplace=True)
     dataset = dataset[dataset['_id'] != 'jobdes']
-    dataset = dataset.drop(columns=['skills','cluster'])
-    dataset.rename(columns={'_id':'id','list_of_skills':'skills'}, inplace=True)
+    dataset = dataset.drop(columns=['skills_concated','cluster'])
+    dataset.rename(columns={'_id':'id'}, inplace=True)
     return dataset
 
 
