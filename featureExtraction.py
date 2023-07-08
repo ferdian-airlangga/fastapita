@@ -165,10 +165,7 @@ def extract_skills_df (df) :
 
 #SIMILARITY CALCULATOR
 def hitung_skor(set1, set2):
-    print(set1)
-    print(set2)
     z = set1.intersection(set2)
-    print(z)
     similarity = len(z)/len(set1)
     similarity = similarity*100
     similarity = round(similarity, 2)    
@@ -180,7 +177,6 @@ def resume_scoring (dataset,jobdes) :
     jobdes = extractor_skills_resume_text(jobdes)
     dataset.loc[len(dataset)] = pd.Series({'_id': 'jobdes', 'skills': jobdes})
     dataset['skills_concated'] = dataset['skills'].apply(lambda x: ' '.join([word for word in x]))
-    print(dataset)
     #Vectorization
     v = TfidfVectorizer()
     dataset_vectorized = v.fit_transform(dataset['skills_concated'])
@@ -195,7 +191,6 @@ def resume_scoring (dataset,jobdes) :
     dataset['cluster'] = cluster_labels
     dataset['cluster'] = dataset['cluster']+1
     jobdes_cluster = dataset.loc[dataset['_id'] == 'jobdes']
-    print(jobdes_cluster)
     jobdes_cluster = jobdes_cluster.iloc[0,3]
 
     #Loop Dataframe
@@ -205,7 +200,6 @@ def resume_scoring (dataset,jobdes) :
             dataset.at[index, 'cluster'] = hitung_skor(jobdes,dataset.at[index, 'skills'])
         else :
             dataset.at[index, 'cluster'] = 0
-    print(dataset)
     dataset.rename(columns={"cluster": "score", "score": "cluster"},inplace=True)
     dataset = dataset[dataset['_id'] != 'jobdes']
     dataset = dataset.drop(columns=['skills_concated','cluster'])
