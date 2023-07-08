@@ -164,12 +164,12 @@ def extract_skills_df (df) :
     return df
 
 #SIMILARITY CALCULATOR
-def hitung_skor(sentence1, sentence2):
-    words1 = sentence1.lower().split()
-    words2 = sentence2.lower().split()
-    
-    common_words = set(words1) & set(words2)
-    similarity = len(common_words) / len(words1)
+def hitung_skor(set1, set2):
+    print(set1)
+    print(set2)
+    z = set1.intersection(set2)
+    print(z)
+    similarity = len(z)/len(set1)
     similarity = similarity*100
     similarity = round(similarity, 2)    
     return similarity
