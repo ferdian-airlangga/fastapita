@@ -164,17 +164,14 @@ def extract_skills_df (df) :
     return df
 
 #SIMILARITY CALCULATOR
-def hitung_skor(list_kata1, list_kata2):
-    skor = 0
-    print(list_kata1)
-    print(list_kata2)
-    for kata1 in list_kata1:
-        for kata2 in list_kata2:
-            if kata1 == kata2:
-                skor += 1
-    skor = skor/len(list_kata1)
-    skor = skor * 100
-    print(skor)
+def hitung_skor(sentence1, sentence2):
+    words1 = sentence1.lower().split()
+    words2 = sentence2.lower().split()
+    
+    common_words = set(words1) & set(words2)
+    similarity = len(common_words) / len(words1)
+
+    return similarity
     return (skor)
 #RESUME SCORING
 def resume_scoring (dataset,jobdes) :
