@@ -170,9 +170,9 @@ def hitung_skor(sentence1, sentence2):
     
     common_words = set(words1) & set(words2)
     similarity = len(common_words) / len(words1)
-
+    similarity = similarity*100
+    similarity = round(similarity, 2)    
     return similarity
-    return (skor)
 #RESUME SCORING
 def resume_scoring (dataset,jobdes) :
     jobdes = GoogleTranslator(source='auto', target='en').translate(jobdes)
