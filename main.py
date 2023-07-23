@@ -12,7 +12,7 @@ from mailer import kirim_email
 
 app = FastAPI()
 
-backend_endpoint = "http://ec2-44-202-51-145.compute-1.amazonaws.com:5000"
+backend_endpoint = "http://ec2-3-87-22-2.compute-1.amazonaws.com:5000"
 
 
 app.add_middleware(
